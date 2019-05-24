@@ -1,6 +1,6 @@
+import pandas as pd
 import os
 import re
-import pandas as pd
 
 files_dir = "files"
 out_dir = "results"
@@ -28,7 +28,7 @@ d = {
 for mental_exp in os.listdir(files_dir):
 	metadata_dir = os.path.join(files_dir, mental_exp, "metadata")
 	for doc in os.listdir(metadata_dir):
-		if doc.endswith(".py"):
+		if not doc.endswith(".txt"):
 			continue
 
 		print("[{}][{}]".format(metadata_dir,doc))
@@ -77,12 +77,13 @@ for mental_exp in os.listdir(files_dir):
 			day = re.search("<day[^>]*>[^<]*<", date_block).group()[:-1].split(">")[1]
 			month = re.search("<month[^>]*>[^<]*<", date_block).group()[:-1].split(">")[1]
 			year = re.search("<year[^>]*>[^<]*<", date_block).group()[:-1].split(">")[1]
-			date = "/".join([day,month,year])
+			date = year
 		except AttributeError:
 			try:
 				date_block = re.search("<pub-date[^>]*>\s*(<month.*\s*)?<year.*\s*(<string-date.*)?", text).group()
 				if "string-date" in date_block:
 					date = re.search("<string-date[^>]*>[^<]*<", date_block).group()[:-1].split(">")[1]
+					date = re.sub('[^0-9]','',date)
 				elif "year" in date_block:
 					date = re.search("<year[^>]*>[^<]*<", date_block).group()[:-1].split(">")[1]
 				else:

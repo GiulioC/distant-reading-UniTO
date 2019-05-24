@@ -2,6 +2,8 @@ import pandas as pd
 import os
 import re
 
+files_dir = "files"
+
 d = {
 	"document-name":[],
 	"article-type":[],
@@ -22,12 +24,9 @@ d = {
 	"abstract":[]
 }
 
-files_dir = "files"
-#with open("data.tsv", "w") as outfile:
-	#outfile.write("document-name\tarticle-type\tpublisher-name\tjournal-title\tarticle-id\tdoi\tsubject\tarticle-title\tauthor(s)\tdate\tvolume\tissue\tfpage\tlpage\tlanguage\tfootnote\tabstract\n")
 for metadata_dir in os.listdir(files_dir):
 	for doc in os.listdir(os.path.join(files_dir,metadata_dir)):
-		if doc.endswith(".py"):
+		if not doc.endswith(".txt"):
 			continue
 
 		print("[{}][{}]".format(metadata_dir,doc))
@@ -76,7 +75,6 @@ for metadata_dir in os.listdir(files_dir):
 			day = re.search("<day[^>]*>[^<]*<", date_block).group()[:-1].split(">")[1]
 			month = re.search("<month[^>]*>[^<]*<", date_block).group()[:-1].split(">")[1]
 			year = re.search("<year[^>]*>[^<]*<", date_block).group()[:-1].split(">")[1]
-			#date = "/".join([day,month,year])
 			date = year
 		except AttributeError:
 			try:
@@ -118,26 +116,6 @@ for metadata_dir in os.listdir(files_dir):
 			abstract = re.search("<p>.*</p>", abstract_group).group()[3:-4]
 		except AttributeError:
 			abstract = ""
-
-		"""outfile.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
-			doc,
-			article_type,
-			publisher_name,
-			journal_title,
-			doc_id,
-			doi,
-			subject,
-			article_title,
-			author_names,
-			date,
-			volume,
-			issue,
-			fpage,
-			lpage,
-			lang,
-			footnote,
-			abstract
-		))"""
 
 		d["document-name"].append(doc)
 		d["article-type"].append(article_type)
