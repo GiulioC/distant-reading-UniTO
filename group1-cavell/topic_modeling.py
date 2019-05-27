@@ -7,10 +7,13 @@ import textract
 import utils
 
 files_dir = "files"
+
+#configurable parameteres
 n_features = 2000
 n_topics = 20
 w_threshold = 4
 d_threshold = 5
+num_characters_around_brackets = 0
 
 manual_stopwords = [
 	"word1", "word2", "..."
@@ -39,7 +42,7 @@ for file in os.listdir(files_dir):
 	text = re.sub('- ', '', text)
 	text = re.sub('[0-9]{1,}', '', text)
 
-	documents.extend(utils.extract_parenthesis_groups_v2(text))
+	documents.extend(utils.extract_parenthesis_groups_v2(text, num_characters_around_brackets))
 	print(len(documents), "Total documents\n")
 
 print("DOCUMENTS:",len(documents))

@@ -49,13 +49,14 @@ def extract_parenthesis_groups(book_text):
 		book_text = book_text[end:]
 	return docs
 
-def extract_parenthesis_groups_v2(book_text):
+def extract_parenthesis_groups_v2(book_text, n_chars):
 	docs = []
 	tmp_text = book_text
 	while True:
 		match = False
 		for match in re.finditer("\([^\(\)]*\)", tmp_text):
-			docs.append(match.group())
+			start, end = match.span()
+			docs.append(tmp_text[start-n_chars:end+n_chars])
 			match = True
 
 		tmp_text = re.sub("\([^\(\)]*\)", "", tmp_text)
