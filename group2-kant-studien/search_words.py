@@ -20,7 +20,7 @@ for input_file in os.listdir(files_dir):
 	print("[{}]".format(input_file))
 
 	text = ""
-	with open(os.path.join(files_dir,input_file), "r") as f:
+	with open(os.path.join(files_dir,input_file), "r", encoding="utf-8") as f:
 		text = f.read()
 
 	book_words = analyzer(text)

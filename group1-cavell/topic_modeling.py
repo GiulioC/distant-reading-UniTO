@@ -3,7 +3,6 @@ from sklearn.decomposition import LatentDirichletAllocation
 from sklearn.feature_extraction.text import CountVectorizer
 import re, os, sys
 import numpy as np
-import textract
 import utils
 
 files_dir = "files"
@@ -14,7 +13,6 @@ n_topics = 20
 w_threshold = 4
 d_threshold = 5
 num_characters_around_brackets = 0
-
 manual_stopwords = [
 	"word1", "word2", "..."
 ]
@@ -27,13 +25,10 @@ for file in os.listdir(files_dir):
 			os.path.join(files_dir, '_'.join(file.split()))
 		)
 for file in os.listdir(files_dir):
-	if file.endswith(".docx"):
-		text = textract.process(os.path.join(files_dir,file), extension='docx').decode('utf-8')
-	elif file.endswith(".txt"):
-		with open(os.path.join(files_dir,file), "r") as f:
-			text = f.read()
-	else:
+	if not file.endswith(".txt"):
 		continue
+	with open(os.path.join(files_dir,file), "r", encoding="utf-8") as f:
+		text = f.read()
 
 	print("[{}]".format(file))
 
