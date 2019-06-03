@@ -26,12 +26,12 @@ d = {
 
 for metadata_dir in os.listdir(files_dir):
 	for doc in os.listdir(os.path.join(files_dir,metadata_dir)):
-		if not doc.endswith(".txt"):
+		if not doc.endswith(".xml"):
 			continue
 
 		print("[{}][{}]".format(metadata_dir,doc))
 
-		with open(os.path.join(files_dir,metadata_dir,doc), "r") as f:
+		with open(os.path.join(files_dir,metadata_dir,doc), "r", encoding="utf-8") as f:
 			text = f.read()
 
 		article_type = (re.search("article-type=\"[^\"]*\"", text).group().split('"')[1])

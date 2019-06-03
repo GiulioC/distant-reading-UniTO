@@ -28,7 +28,7 @@ d = {
 for mental_exp in os.listdir(files_dir):
 	metadata_dir = os.path.join(files_dir, mental_exp, "metadata")
 	for doc in os.listdir(metadata_dir):
-		if not doc.endswith(".txt"):
+		if not doc.endswith(".xml"):
 			continue
 
 		print("[{}][{}]".format(metadata_dir,doc))
