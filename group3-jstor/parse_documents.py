@@ -33,7 +33,7 @@ for mental_exp in os.listdir(files_dir):
 
 		print("[{}][{}]".format(metadata_dir,doc))
 
-		with open(os.path.join(metadata_dir,doc), "r") as f:
+		with open(os.path.join(metadata_dir,doc), "r", encoding="utf-8") as f:
 			text = f.read()
 
 		article_type = (re.search("article-type=\"[^\"]*\"", text).group().split('"')[1])
