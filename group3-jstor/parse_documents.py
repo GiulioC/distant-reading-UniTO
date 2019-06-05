@@ -1,32 +1,44 @@
+from sklearn.feature_extraction.stop_words import ENGLISH_STOP_WORDS as stopwords
 import pandas as pd
 import os
 import re
 
 files_dir = "files"
 out_dir = "results"
+num_relevant_words = 20
+w_threshold = 3
+manual_stopwords = [
+	""
+]
 
-d = {
-	"document-name":[],
-	"article-type":[],
-	"publisher-name":[],
-	"journal-title":[],
-	"article-id":[],
-	"doi":[],
-	"subject":[],
-	"article-title":[],
-	"author(s)":[],
-	"date":[],
-	"volume":[],
-	"issue":[],
-	"fpage":[],
-	"lpage":[],
-	"language":[],
-	"footnote":[],
-	"abstract":[]
-}
+def get_clean_structs():
+	data_struct = {
+		"document-name":[],
+		"article-type":[],
+		"publisher-name":[],
+		"journal-title":[],
+		"article-id":[],
+		"doi":[],
+		"subject":[],
+		"article-title":[],
+		"author(s)":[],
+		"date":[],
+		"volume":[],
+		"issue":[],
+		"fpage":[],
+		"lpage":[],
+		"language":[],
+		"footnote":[],
+		"abstract":[]
+	}
+	year_struct = {}
+	return data_struct, year_struct
 
 for mental_exp in os.listdir(files_dir):
 	metadata_dir = os.path.join(files_dir, mental_exp, "metadata")
+	ngram_dir = os.path.join(files_dir, mental_exp, "ngram1")
+	d, years = get_clean_structs()
+
 	for doc in os.listdir(metadata_dir):
 		if not doc.endswith(".xml"):
 			continue
@@ -137,5 +149,38 @@ for mental_exp in os.listdir(files_dir):
 		d["footnote"].append(footnote)
 		d["abstract"].append(abstract)
 
+		ngram_file = doc.replace(".xml", "-ngram1.txt")
+		try:
+			_ = years[date]
+		except KeyError:
+			years[date] = {}
+
+		count = 0
+		for line in open(os.path.join(ngram_dir,ngram_file), "r"):
+			try:
+				word, freq = line[:-1].split()
+			except ValueError:
+				freq = int(re.search("[0-9]+", line[:-1]).group())
+				word = re.sub("[0-9]+", "", line[:-1])
+
+			if word in stopwords or word in manual_stopwords or len(word) < w_threshold:
+				continue
+
+			try:
+				years[date][word] = years[date][word] + 1
+			except KeyError:
+				years[date][word] = 1
+
+			count += 1
+			if count >= num_relevant_words:
+				break
+
+	if not os.path.exists(os.path.join(out_dir,mental_exp)):
+		os.mkdir(os.path.join(out_dir,mental_exp))
 	df = pd.DataFrame(d)
-	df.to_csv(os.path.join(out_dir,"{}.csv".format(mental_exp)), index=None)
+	df.to_csv(os.path.join(out_dir,mental_exp,"{}_data.csv".format(mental_exp)), index=None)
+
+	for year, word_freqs in years.items():
+		with open(os.path.join(out_dir,mental_exp,"{}_{}_words.csv".format(mental_exp, year)), "w") as f:
+			for wf in sorted(word_freqs.items(), key=lambda kv: kv[1], reverse=True):
+				f.write("{},{}\n".format(wf[0],wf[1]))

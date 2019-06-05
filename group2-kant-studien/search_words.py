@@ -7,8 +7,12 @@ out_dir = "results"
 max_levenshtein = 2
 
 words_dict = {
-	"italien": ["Italienisch"]
+	"erlebnis": ["erleben", "erfahrang"],
+	"erfahrung": ["erfahren"],
 }
+ignore_words = [
+	""
+]
 
 cv = CountVectorizer(stop_words=None, analyzer='word')
 analyzer = cv.build_analyzer()
@@ -31,6 +35,8 @@ for input_file in os.listdir(files_dir):
 		levenshtein_words = set()
 
 		for w in book_words:
+			if w in ignore_words:
+				continue
 			if w == desired_word:
 				exact_match += 1
 			else:
@@ -41,6 +47,16 @@ for input_file in os.listdir(files_dir):
 						match = True
 
 				if not match:
+					if len(w) > len(desired_word):
+						diff = len(w) - len(desired_word)
+						for i in range(diff+1):
+							if w[i:] == desired_word:
+								exact_match += 1
+								levenshtein_words.add("[{}]".format(w))
+							else:
+								if lvs.levenshtein_distance(w[i:],desired_word) <= max_levenshtein:
+									partial_match += 1
+									levenshtein_words.add("[{}]".format(w))
 					if lvs.levenshtein_distance(w,desired_word) <= max_levenshtein:
 						partial_match += 1
 						levenshtein_words.add(w)

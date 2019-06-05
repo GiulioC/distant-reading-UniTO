@@ -4,4 +4,6 @@
 *.xml
 *.docx
 *.pyc
+*.zip
+*.html
 venv/*
