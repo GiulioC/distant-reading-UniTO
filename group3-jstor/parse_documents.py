@@ -42,18 +42,29 @@ for mental_exp in os.listdir(files_dir):
 	for doc in os.listdir(metadata_dir):
 		if not doc.endswith(".xml"):
 			continue
+		if doc.startswith("book-chapter"):
+			continue
 
 		print("[{}][{}]".format(metadata_dir,doc))
 
 		with open(os.path.join(metadata_dir,doc), "r", encoding="utf-8") as f:
 			text = f.read()
 
-		article_type = (re.search("article-type=\"[^\"]*\"", text).group().split('"')[1])
+		try:
+			article_type = (re.search("article-type=\"[^\"]*\"", text).group().split('"')[1])
+		except AttributeError:
+			article_type = ""
 		try:
 			publisher_name = (re.search("publisher-name\">.*<publisher-name>", text).group()[:-1].split(">")[1])
 		except AttributeError:
-			publisher_name = (re.search("publisher-name>[^<]*<", text).group()[:-1].split(">")[1])
-		journal_title = (re.search("journal-title>[^<]*<", text).group()[:-1].split(">")[1])
+			try:
+				publisher_name = (re.search("publisher-name>[^<]*<", text).group()[:-1].split(">")[1])
+			except AttributeError:
+				publisher_name = ""
+		try:
+			journal_title = (re.search("journal-title>[^<]*<", text).group()[:-1].split(">")[1])
+		except AttributeError:
+			journal_title = ""
 		try:
 			doc_id = (re.search("jstor-stable\">[^<]*<", text).group()[:-1].split(">")[1])
 		except AttributeError:
@@ -119,7 +130,10 @@ for mental_exp in os.listdir(files_dir):
 			lpage = (re.search("lpage>[^<]*<", text).group()[:-1].split(">")[1])
 		except AttributeError:
 			lpage = ""
-		lang = (re.search("lang</meta-name>[\s\n]*<meta-value>[^<]*<", text).group()[:-1].split(">")[-1].split("<")[0])
+		try:
+			lang = (re.search("lang</meta-name>[\s\n]*<meta-value>[^<]*<", text).group()[:-1].split(">")[-1].split("<")[0])
+		except AttributeError:
+			lang = ""
 		try:
 			footnote = re.search("<fn id=\"[^\"]*\">[\s\n]*<label>[^<]*</label>[\s\n]*.*", text).group().split("<p>")[1].split("</p>")[0]
 			footnote = re.sub("<[^>]*>", " ", footnote)
@@ -156,7 +170,7 @@ for mental_exp in os.listdir(files_dir):
 			years[date] = {}
 
 		count = 0
-		for line in open(os.path.join(ngram_dir,ngram_file), "r"):
+		for line in open(os.path.join(ngram_dir,ngram_file), "r", encoding="utf-8"):
 			try:
 				word, freq = line[:-1].split()
 			except ValueError:
@@ -180,7 +194,7 @@ for mental_exp in os.listdir(files_dir):
 	df = pd.DataFrame(d)
 	df.to_csv(os.path.join(out_dir,mental_exp,"{}_data.csv".format(mental_exp)), index=None)
 
-	for year, word_freqs in years.items():
-		with open(os.path.join(out_dir,mental_exp,"{}_{}_words.csv".format(mental_exp, year)), "w") as f:
-			for wf in sorted(word_freqs.items(), key=lambda kv: kv[1], reverse=True):
-				f.write("{},{}\n".format(wf[0],wf[1]))
+	#for year, word_freqs in years.items():
+	#	with open(os.path.join(out_dir,mental_exp,"{}_{}_words.csv".format(mental_exp, year)), "w") as f:
+	#		for wf in sorted(word_freqs.items(), key=lambda kv: kv[1], reverse=True):
+	#			f.write("{},{}\n".format(wf[0],wf[1]))

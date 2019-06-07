@@ -1,6 +1,6 @@
 from sklearn.feature_extraction.text import CountVectorizer
 import levenshtein as lvs
-import os
+import os, re
 
 files_dir = "files"
 out_dir = "results"
@@ -26,6 +26,8 @@ for input_file in os.listdir(files_dir):
 	text = ""
 	with open(os.path.join(files_dir,input_file), "r", encoding="utf-8") as f:
 		text = f.read()
+
+	text = re.sub("-\s*\n", "", text)
 
 	book_words = analyzer(text)
 
