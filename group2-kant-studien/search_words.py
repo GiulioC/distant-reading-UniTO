@@ -5,6 +5,7 @@ import os, re
 files_dir = "files"
 out_dir = "results"
 max_levenshtein = 2
+max_length_difference = 2
 
 words_dict = {
 	"erlebnis": ["erleben", "erfahrang"],
@@ -49,8 +50,8 @@ for input_file in os.listdir(files_dir):
 						match = True
 
 				if not match:
+					diff = len(w) - len(desired_word)
 					if len(w) > len(desired_word):
-						diff = len(w) - len(desired_word)
 						for i in range(diff+1):
 							if w[i:] == desired_word:
 								exact_match += 1
@@ -59,9 +60,10 @@ for input_file in os.listdir(files_dir):
 								if lvs.levenshtein_distance(w[i:],desired_word) <= max_levenshtein:
 									partial_match += 1
 									levenshtein_words.add("[{}]".format(w))
-					if lvs.levenshtein_distance(w,desired_word) <= max_levenshtein:
-						partial_match += 1
-						levenshtein_words.add(w)
+					if diff <= max_length_difference:
+						if lvs.levenshtein_distance(w,desired_word) <= max_levenshtein:
+							partial_match += 1
+							levenshtein_words.add(w)
 
 		output_file = input_file.replace(".txt", ".csv")
 		if os.path.exists(os.path.join("results", output_file)):
