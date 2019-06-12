@@ -135,5 +135,6 @@ for metadata_dir in os.listdir(files_dir):
 		d["footnote"].append(footnote)
 		d["abstract"].append(abstract)
 
+
 	df = pd.DataFrame(d)
 	df.to_csv("data.csv", index=None)
