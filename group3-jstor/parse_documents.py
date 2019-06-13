@@ -37,7 +37,7 @@ def get_clean_structs():
 for mental_exp in os.listdir(files_dir):
 	metadata_dir = os.path.join(files_dir, mental_exp, "metadata")
 	ngram_dir = os.path.join(files_dir, mental_exp, "ngram1")
-	d, years = get_clean_structs()
+	d, years_d = get_clean_structs()
 
 	for doc in os.listdir(metadata_dir):
 		if not doc.endswith(".xml"):
@@ -165,9 +165,9 @@ for mental_exp in os.listdir(files_dir):
 
 		ngram_file = doc.replace(".xml", "-ngram1.txt")
 		try:
-			_ = years[date]
+			_ = years_d[date]
 		except KeyError:
-			years[date] = {}
+			years_d[date] = {}
 
 		count = 0
 		for line in open(os.path.join(ngram_dir,ngram_file), "r", encoding="utf-8"):
@@ -181,9 +181,9 @@ for mental_exp in os.listdir(files_dir):
 				continue
 
 			try:
-				years[date][word] = years[date][word] + 1
+				years_d[date][word] = years_d[date][word] + 1
 			except KeyError:
-				years[date][word] = 1
+				years_d[date][word] = 1
 
 			count += 1
 			if count >= num_relevant_words:
@@ -194,7 +194,26 @@ for mental_exp in os.listdir(files_dir):
 	df = pd.DataFrame(d)
 	df.to_csv(os.path.join(out_dir,mental_exp,"{}_data.csv".format(mental_exp)), index=None)
 
-	#for year, word_freqs in years.items():
-	#	with open(os.path.join(out_dir,mental_exp,"{}_{}_words.csv".format(mental_exp, year)), "w") as f:
-	#		for wf in sorted(word_freqs.items(), key=lambda kv: kv[1], reverse=True):
-	#			f.write("{},{}\n".format(wf[0],wf[1]))
+	for year, word_freqs in years_d.items():
+		with open(os.path.join(out_dir,mental_exp,"{}_{}_words.csv".format(mental_exp, year)), "w", encoding="utf-8") as f:
+			for wf in sorted(word_freqs.items(), key=lambda kv: kv[1], reverse=True):
+				f.write("{},{}\n".format(wf[0],wf[1]))
+
+	years_group = [];
+	years_d_keys = list(years_d.keys())
+	years_d_keys.sort()
+	for year in years_d_keys:
+		years_group.append(year)
+		if str(year).endswith("4") or str(year).endswith("9"):
+			word_freqs_total = {}
+			for y in years_group:
+				word_freqs = years_d[y]
+				for w,f in word_freqs.items():
+					try:
+						word_freqs_total[w] += f
+					except KeyError:
+						word_freqs_total[w] = f
+			with open(os.path.join(out_dir,mental_exp,"{}_{}-{}_words.csv".format(mental_exp, years_group[0], years_group[-1])), "w", encoding="utf-8") as out_file:
+				for w,f in sorted(word_freqs_total.items(), key=lambda kv: kv[1], reverse=True):
+					out_file.write("{},{}\n".format(w,f))
+			years_group = []
