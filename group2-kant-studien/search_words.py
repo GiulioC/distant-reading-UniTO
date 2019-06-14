@@ -70,11 +70,11 @@ for input_file in os.listdir(files_dir):
 			file_exists = True
 		else:
 			file_exists = False
-		with open(os.path.join(out_dir,output_file), "a") as out_file:
+		with open(os.path.join(out_dir,output_file), "a", encoding="utf-8") as out_file:
 			if not file_exists:
 				out_file.write("parola,libro,occorrenze,occorrenze_parziali\n")
 			out_file.write("{},{},{},{}\n".format(desired_word,input_file,exact_match,partial_match))
 
-		with open(os.path.join(out_dir,input_file.replace(".txt", "_{}_levenshtein_words.txt".format(desired_word))), "w") as out_file:
+		with open(os.path.join(out_dir,input_file.replace(".txt", "_{}_levenshtein_words.txt".format(desired_word))), "w", encoding="utf-8") as out_file:
 			for w in levenshtein_words:
 				out_file.write(str(w)+"\n")
