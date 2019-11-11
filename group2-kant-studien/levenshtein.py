@@ -1,5 +1,6 @@
 import numpy as np
 
+# function for computing levenshtein distance between a given word and a target word
 def levenshtein_distance(s, t, ratio_calc = False):
     rows = len(s)+1
     cols = len(t)+1

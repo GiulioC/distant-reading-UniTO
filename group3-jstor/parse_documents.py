@@ -5,12 +5,18 @@ import re
 
 files_dir = "files"
 out_dir = "results"
+
+#configurable parameteres. Play with them and see how they affect the final result
+# the number of most frequent words to read from each ngram file
 num_relevant_words = 20
-w_threshold = 3
+# minimum length of a word (in characters) in order for it to be considered
+w_threshold = 4
+# all the following words will be ignored
 manual_stopwords = [
-	""
+	"word1", "word2", "..."
 ]
 
+# empty the data structures used for data collection
 def get_clean_structs():
 	data_struct = {
 		"document-name":[],
@@ -34,22 +40,29 @@ def get_clean_structs():
 	year_struct = {}
 	return data_struct, year_struct
 
+# iterate over the directories of the mental experiments and consider one at a time
 for mental_exp in os.listdir(files_dir):
 	metadata_dir = os.path.join(files_dir, mental_exp, "metadata")
 	ngram_dir = os.path.join(files_dir, mental_exp, "ngram1")
 	d, years_d = get_clean_structs()
 
+	# process all metedata files one at a time
 	for doc in os.listdir(metadata_dir):
+		# skip files that are not .xml
 		if not doc.endswith(".xml"):
 			continue
+		# only consider journal articles
 		if doc.startswith("book-chapter"):
 			continue
 
+		# print the path of the file currently being processed
 		print("[{}][{}]".format(metadata_dir,doc))
 
+		# open the file and read its content
 		with open(os.path.join(metadata_dir,doc), "r", encoding="utf-8") as f:
 			text = f.read()
 
+		# for each file attribute, try to read it. If not present, leave it blank
 		try:
 			article_type = (re.search("article-type=\"[^\"]*\"", text).group().split('"')[1])
 		except AttributeError:
@@ -145,6 +158,7 @@ for mental_exp in os.listdir(files_dir):
 		except AttributeError:
 			abstract = ""
 
+		# save the data extracted from the file for later use
 		d["document-name"].append(doc)
 		d["article-type"].append(article_type)
 		d["publisher-name"].append(publisher_name)
@@ -163,42 +177,54 @@ for mental_exp in os.listdir(files_dir):
 		d["footnote"].append(footnote)
 		d["abstract"].append(abstract)
 
-		ngram_file = doc.replace(".xml", "-ngram1.txt")
 		try:
 			_ = years_d[date]
 		except KeyError:
 			years_d[date] = {}
 
 		count = 0
+		# open the ngram file corresponding to the current journal article file
+		# and read it line by line
+		ngram_file = doc.replace(".xml", "-ngram1.txt")
 		for line in open(os.path.join(ngram_dir,ngram_file), "r", encoding="utf-8"):
+			# get the word and its corresponding frequency
 			try:
 				word, freq = line[:-1].split()
 			except ValueError:
 				freq = int(re.search("[0-9]+", line[:-1]).group())
 				word = re.sub("[0-9]+", "", line[:-1])
 
-			if word in stopwords or word in manual_stopwords or len(word) < w_threshold:
+			# skip the word if it is a stopword or too short
+			if word in stopwords or word in manual_stopwords or len(word) <= w_threshold:
 				continue
 
+			# update the counter for the word and year pair
 			try:
 				years_d[date][word] = years_d[date][word] + 1
 			except KeyError:
 				years_d[date][word] = 1
 
 			count += 1
+			# if the first num_relevant_words words of the file have been read,
+			# stop reading other words
 			if count >= num_relevant_words:
 				break
 
+	# create the out directory for the current mental experiment if it does not exist yet
 	if not os.path.exists(os.path.join(out_dir,mental_exp)):
 		os.mkdir(os.path.join(out_dir,mental_exp))
+
+	# save in the out directory all the metadata about the journal articles
 	df = pd.DataFrame(d)
 	df.to_csv(os.path.join(out_dir,mental_exp,"{}_data.csv".format(mental_exp)), index=None)
 
+	# for each year found in the metadata, save a file with the frequency of words
 	for year, word_freqs in years_d.items():
 		with open(os.path.join(out_dir,mental_exp,"{}_{}_words.csv".format(mental_exp, year)), "w", encoding="utf-8") as f:
 			for wf in sorted(word_freqs.items(), key=lambda kv: kv[1], reverse=True):
 				f.write("{},{}\n".format(wf[0],wf[1]))
 
+	# now do the same for each group of 5 years
 	years_group = [];
 	years_d_keys = list(years_d.keys())
 	years_d_keys.sort()

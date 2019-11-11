@@ -4,6 +4,7 @@ import re
 
 files_dir = "files"
 
+# data structure for the metadata
 d = {
 	"document-name":[],
 	"article-type":[],
@@ -24,16 +25,22 @@ d = {
 	"abstract":[]
 }
 
+# iterate over all directories in the home directory
 for metadata_dir in os.listdir(files_dir):
+	# process all documents in the current directory, one at a time
 	for doc in os.listdir(os.path.join(files_dir,metadata_dir)):
+		# skip documents that are not .xml
 		if not doc.endswith(".xml"):
 			continue
 
+		# display the current document path
 		print("[{}][{}]".format(metadata_dir,doc))
 
+		# open the document and read its content
 		with open(os.path.join(files_dir,metadata_dir,doc), "r", encoding="utf-8") as f:
 			text = f.read()
 
+		# for each file attribute, try to read it. If not present, leave it blank
 		article_type = (re.search("article-type=\"[^\"]*\"", text).group().split('"')[1])
 		try:
 			publisher_name = (re.search("publisher-name\">.*<publisher-name>", text).group()[:-1].split(">")[1])
@@ -117,6 +124,7 @@ for metadata_dir in os.listdir(files_dir):
 		except AttributeError:
 			abstract = ""
 
+		# save the data extracted from the file in the data structure
 		d["document-name"].append(doc)
 		d["article-type"].append(article_type)
 		d["publisher-name"].append(publisher_name)
@@ -135,6 +143,6 @@ for metadata_dir in os.listdir(files_dir):
 		d["footnote"].append(footnote)
 		d["abstract"].append(abstract)
 
-
+	# once all the files have been processed, save the collected metadata in a single file
 	df = pd.DataFrame(d)
 	df.to_csv("data.csv", index=None)
